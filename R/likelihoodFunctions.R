@@ -1,12 +1,15 @@
 #' Get appropriate likelihood function accourding to the selected model
-#' 
+#'
 #' @param model the distributional model selected
-#' 
-#' @return a list with two items: dna, rna. Each item is the corresponding 
+#'
+#' @return a list with two items: dna, rna. Each item is the corresponding
 #' likelihod function
 #' @noRd
-get.ll.functions <- function(model) {
-    if(model == "gamma.pois"){
+get.ll.functions <- function(model, random_effects = FALSE) {
+    if(model == "gamma.pois" & random_effects){
+        llfnDNA <- ll.dna.gamma.pois
+        llfnRNA <- ll.rna.gamma.pois.randeff
+    } else if(model == "gamma.pois"){
         llfnDNA <- ll.dna.gamma.pois
         llfnRNA <- ll.rna.gamma.pois
     } else if(model == "ln.nb"){
@@ -22,11 +25,11 @@ get.ll.functions <- function(model) {
 }
 
 #' likelihood of dna observations
-#' 
+#'
 #' @name ll.dna
 #' @rdname ll.dna
-#' 
-#' @aliases 
+#'
+#' @aliases
 #' ll.dna.gamma.pois
 #' ll.dna.ln.nb
 #' ll.dna.ln.ln
@@ -39,7 +42,7 @@ get.ll.functions <- function(model) {
 #' @param ddesign.mat the dna model design matrix
 #' (logical, samples x dna parameters)
 #'
-#' @return negative log likelihood of dna  observations under the specified 
+#' @return negative log likelihood of dna  observations under the specified
 #' model
 #' @noRd
 NULL
@@ -47,8 +50,8 @@ NULL
 #' @rdname ll.dna
 #' @noRd
 ll.dna.gamma.pois <- function(theta, dcounts, log.ddepth, ddesign.mat) {
-    
-    log.rate.est <- matrix(rep(-(ddesign.mat %*% theta[-1] + log.ddepth), 
+
+    log.rate.est <- matrix(rep(-(ddesign.mat %*% theta[-1] + log.ddepth),
                             NCOL(dcounts)), ncol = NCOL(dcounts))
     ## compute likelihood
     # shape_gamma = alpha
@@ -63,26 +66,27 @@ ll.dna.gamma.pois <- function(theta, dcounts, log.ddepth, ddesign.mat) {
 #' @rdname ll.dna
 #' @noRd
 ll.dna.ln <- function(theta, dcounts, log.ddepth, ddesign.mat) {
-    
-    log.d.est <- matrix(rep(ddesign.mat %*% theta[-1] + log.ddepth, 
+
+    log.d.est <- matrix(rep(ddesign.mat %*% theta[-1] + log.ddepth,
                             NCOL(dcounts)), ncol=NCOL(dcounts))
-    
+
     ## compute likelihood
     ll <- sum(dlnorm(x = dcounts,
                     meanlog = log.d.est,
                     sdlog = exp(theta[1]),
                     log = TRUE))
-    
+
     return(-ll)
 }
 
 #' likelihood of rna observations
-#' 
+#'
 #' @name ll.rna
 #' @rdname ll.rna
-#' 
-#' @aliases 
+#'
+#' @aliases
 #' ll.rna.gamma.pois
+#' ll.rna.gamma.pois_randeff
 #' ll.rna.ln.nb
 #' ll.rna.ln.ln
 #'
@@ -90,29 +94,31 @@ ll.dna.ln <- function(theta, dcounts, log.ddepth, ddesign.mat) {
 #' (numeric, rna parameters)
 #' @param theta.d dna model parameters to condition likelihood on
 #' @param rcounts the observed RNA counts (integer, samples x enhancers)
-#' @param log.rdepth rna library size correction vector, log scale 
+#' @param log.rdepth rna library size correction vector, log scale
 #' (numeric, samples)
-#' @param d2rdesign.mat the trasitional matrix to distribute and match DNA 
+#' @param d2rdesign.mat the trasitional matrix to distribute and match DNA
 #' estimates to RNA observations (logical, rna samples x dna parameters)
-#' @param rdesign.mat the rna model design matrix 
+#' @param rdesign.mat the rna model design matrix
 #' (logical, rna samples x rna parameters)
-#'
+#'#' @param randeff.mat the rna model random effect design matrix
+#' (logical, rna samples x rna random effect groups)
+#' only implemented for gamma.pois model
 #' @return negative log likelihood of rna observations under the specified model
 #' @noRd
 NULL
 
 #' @rdname ll.rna
 #' @noRd
-ll.rna.gamma.pois <- function(theta, theta.d, 
+ll.rna.gamma.pois <- function(theta, theta.d, theta.rand = NULL,
                             rcounts, log.rdepth,
-                            d2rdesign.mat, rdesign.mat) {
-    
-    alpha.mat <- matrix(rep(theta.d[1,], each=NROW(d2rdesign.mat)), 
+                            d2rdesign.mat, rdesign.mat, randeff.mat = NULL) {
+
+    alpha.mat <- matrix(rep(theta.d[1,], each=NROW(d2rdesign.mat)),
                         nrow=NROW(d2rdesign.mat))
     log.d.est <- (d2rdesign.mat %*% theta.d[-1,,drop=FALSE]) + alpha.mat
-    log.r.est <- log.d.est + rep((rdesign.mat %*% theta[-1]) + log.rdepth, 
+    log.r.est <- log.d.est + rep((rdesign.mat %*% theta[-1]) + log.rdepth,
                                 NCOL(log.d.est))
-    
+
     ## compute likelihood
     # mu_NB = alpha / beta * rna_model
     #       = alpha * dna_model * rna_model
@@ -124,14 +130,46 @@ ll.rna.gamma.pois <- function(theta, theta.d,
     return(-ll)
 }
 
+
 #' @rdname ll.rna
 #' @noRd
-ll.rna.scale.nb <- function(theta, dcounts, rcounts, 
-                            log.ddepth, log.rdepth, rdesign.mat) {
+ll.rna.gamma.pois.randeff <- function(theta, theta.d, theta.rand,
+                              rcounts, log.rdepth,
+                              d2rdesign.mat, rdesign.mat, randeff.mat,
+                              invgamma_params = c(0.1, 0.1)) {
+
+    alpha.mat <- matrix(rep(theta.d[1,], each=NROW(d2rdesign.mat)),
+                        nrow=NROW(d2rdesign.mat))
+    log.d.est <- (d2rdesign.mat %*% theta.d[-1,,drop=FALSE]) + alpha.mat
+    log.r.est <- log.d.est + rep((rdesign.mat %*% theta[-1]) + (randeff.mat %*% theta.rand[-1]) + log.rdepth,
+                                 NCOL(log.d.est))
+
+    ## compute likelihood
+    # mu_NB = alpha / beta * rna_model
+    #       = alpha * dna_model * rna_model
+    # size_alpha = alpha
+    ll <- sum(dnbinom(x = rcounts,
+                      size = exp(alpha.mat),
+                      mu = exp(log.r.est),
+                      log = TRUE))
+
+    ll_re <- sum(dnorm(x = theta.rand[-1],
+                       mean = 0,
+                       sd = exp(theta.rand[1]),
+                       log = T)) +
+        invgamma::dinvgamma(exp(theta.rand[1])^2, invgamma_params[1], invgamma_params[2], log = T)
+
+    return(- (ll + ll_re))
+}
+
+#' @rdname ll.rna
+#' @noRd
+ll.rna.scale.nb <- function(theta, dcounts, rcounts,
+                            log.ddepth, log.rdepth, rdesign.mat, randeff.mat = NULL) {
     log.d.est <- log(dcounts) - log.ddepth
-    log.r.est <- log.d.est + rep(((rdesign.mat %*% theta[-1]) + log.rdepth), 
+    log.r.est <- log.d.est + rep(((rdesign.mat %*% theta[-1]) + log.rdepth),
                                  NCOL(dcounts))
-    
+
     ll <- sum(dnbinom(x = rcounts,
                       size = exp(exp(theta[1])),
                       mu = exp(log.r.est),
@@ -141,38 +179,38 @@ ll.rna.scale.nb <- function(theta, dcounts, rcounts,
 
 #' @rdname ll.rna
 #' @noRd
-ll.rna.ln.nb <- function(theta, theta.d, 
+ll.rna.ln.nb <- function(theta, theta.d, theta.rand = NULL,
                         rcounts, log.rdepth,
-                        d2rdesign.mat, rdesign.mat) {
-    
+                        d2rdesign.mat, rdesign.mat, randeff.mat = NULL) {
+
     log.d.est <- d2rdesign.mat %*% theta.d[-1,]
-    log.r.est <- log.d.est + rep(((rdesign.mat %*% theta[-1]) + log.rdepth), 
+    log.r.est <- log.d.est + rep(((rdesign.mat %*% theta[-1]) + log.rdepth),
                                 NCOL(log.d.est))
-    
+
     ## compute likelihood
     ll <- sum(dnbinom(x = rcounts,
                     size = exp(exp(theta[1])),
                     mu = exp(log.r.est),
                     log = TRUE))
-    
+
     return(-ll)
 }
 
 #' @rdname ll.rna
 #' @noRd
-ll.rna.ln.ln <- function(theta, theta.d, 
+ll.rna.ln.ln <- function(theta, theta.d, theta.rand = NULL,
                         rcounts, log.rdepth,
-                        d2rdesign.mat, rdesign.mat) {
-    
+                        d2rdesign.mat, rdesign.mat, randeff.mat = NULL) {
+
     log.d.est <- d2rdesign.mat %*% theta.d[-1,]
-    log.r.est <- log.d.est + rep(((rdesign.mat %*% theta[-1]) + log.rdepth), 
+    log.r.est <- log.d.est + rep(((rdesign.mat %*% theta[-1]) + log.rdepth),
                                 NCOL(log.d.est))
-    
+
     ## compute likelihood
     ll <- sum(dlnorm(x = rcounts,
                     meanlog = log.r.est,
                     sdlog = exp(theta[1]),
                     log = TRUE))
-    
+
     return(-ll)
 }

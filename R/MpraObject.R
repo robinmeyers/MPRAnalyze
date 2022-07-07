@@ -7,15 +7,17 @@ setClassUnion('Design', members = c('matrix', 'formula', 'NULL'))
 
 setClass("Designs", slots = c(
     dna = "Design",
-    
+
     rnaFull = "Design",
     rnaCtrlFull = "Design",
-    
+
     ## only used in differential LRT mode
     rnaRed = "Design",
     rnaCtrlRed = "Design",
-    
-    dna2rna = "Design"
+
+    dna2rna = "Design",
+
+    randEff = "Design"
 ))
 
 #' validate an MpraObject
@@ -36,17 +38,17 @@ validateMpraObject <- function(object) {
     if (NCOL(rnaCounts(object)) != NROW(rnaAnnot(object))) {
         errors <- c(errors, "RNA observations and annotations don't match")
     }
-    if (is.null(rownames(dnaCounts(object))) | 
+    if (is.null(rownames(dnaCounts(object))) |
         is.null(rownames(rnaCounts(object))) |
         any(rownames(dnaCounts(object)) != rownames(rnaCounts(object)))) {
         errors <- c(errors,
                     "RNA, DNA feature names either missing or don't match")
     }
-    if (length(unique(rownames(dnaCounts(object)))) != 
+    if (length(unique(rownames(dnaCounts(object)))) !=
         length(rownames(dnaCounts(object)))) {
         errors <- c(errors, "enhancer IDs must by unique")
     }
-    
+
     if(length(errors) > 0) {
         return(errors)
     } else {
@@ -55,18 +57,18 @@ validateMpraObject <- function(object) {
 }
 
 #' Full documentation of MpraObject structure and slots
-#' 
+#'
 #' @slot dnaCounts matrix of DNA counts
 #' @slot rnaCounts matrix of RNA counts
-#' @slot dnaAnnot DNA column annotations 
+#' @slot dnaAnnot DNA column annotations
 #' (info on condition, batch, barcode, etc)
-#' @slot rnaAnnot RNA column annotations 
+#' @slot rnaAnnot RNA column annotations
 #' (info on condition, batch, barcode, etc)
 #' @slot rowAnnot annotations for the features (candidate enhancers)
 #' @slot controls indices of negative controls
 #' @slot controls.forfit indices of negative controls used for fitting in `full`
 #' mode
-#' @slot lib.factor a factor with a level for each library, used for depth 
+#' @slot lib.factor a factor with a level for each library, used for depth
 #' estimation and in `idr` quantitative mode
 #' @slot dnaDepth library depth correction factors for DNA libraries
 #' @slot rnaDepth library depth correction factors for RNA libraries
@@ -75,11 +77,11 @@ validateMpraObject <- function(object) {
 #' @slot model id of the distributional model used
 #' @slot designs a Designs object containing the various design matrices used
 #' @slot modelFits fitted models, populated by an analysis function
-#' @slot modelFits.red fitted reduced models, populated by an LRT analysis 
+#' @slot modelFits.red fitted reduced models, populated by an LRT analysis
 #' function
 #' @slot modelPreFits.dna.ctrl fitted models for control DNA
 #' @slot BPPARAM The BiocParallel parallelization backend to use throughout
-#' 
+#'
 #' @noRd
 setClass("MpraObject", validity = validateMpraObject,
          slots = c(
@@ -89,33 +91,33 @@ setClass("MpraObject", validity = validateMpraObject,
              dnaAnnot = "data.frame",
              rnaAnnot = "data.frame",
              rowAnnot = "dfORNULL",
-             controls = "logical", 
-             controls.forfit = "integerORNULL", 
-             
+             controls = "logical",
+             controls.forfit = "integerORNULL",
+
              lib.factor = "factor",
              dnaDepth = "numeric",
              rnaDepth = "numeric",
              rnaCtrlScale = "numericORNULL",
-             
+
              mode = "character",
              model = "character",
              designs = "Designs",
              modelFits = "list",
-             modelFits.red = "list", 
+             modelFits.red = "list",
              modelPreFits.dna.ctrl = "listORNULL",
-             
+
              BPPARAM = "BiocParallelParam"
          ))
 
 #' MpraObject
-#' 
+#'
 #' @description The main object MPRAnalyze works with, contains the input data,
 #' associated annotations, model parameters and analysis results.
-#' 
+#'
 #' @export
 #' @import BiocParallel
 #' @importFrom SummarizedExperiment SummarizedExperiment assay colData rowData
-#' 
+#'
 #' @param dnaCounts the DNA count matrix, or a SummarizedExperiment object
 #' containing the DNA Counts and column annotations for the DNA data. If the
 #' input is a SummarizedExperiment object, the dnaAnnot (or colAnnot) arguments
@@ -128,20 +130,20 @@ setClass("MpraObject", validity = validateMpraObject,
 #' @param rnaAnnot data.frame with the RNA column (sample) annotations
 #' @param colAnnot if annotations for DNA and RNA are identical, they can be set
 #' at the same time using colAnnot instead of using both rnaAnnot and dnaAnnot
-#' @param controls IDs of the rows in the matrices that correspond to negative 
+#' @param controls IDs of the rows in the matrices that correspond to negative
 #' control enhancers. These are used to establish the null for quantification
-#' purposes, and to correct systemic bias in comparative analyses. Can be a 
+#' purposes, and to correct systemic bias in comparative analyses. Can be a
 #' character vectors (corresponding to rownames in the data matrices), logical
 #' or numeric indices.
 #' @param rowAnnot a data.frame with the row (candidate enhancer) annotations.
 #' The names must match the row names in the DNA and RNA count matrices.
 #' @param BPPARAM a parallelization backend using the BiocParallel package, see
 #' more details [here](http://bioconductor.org/packages/release/bioc/html/BiocParallel.html)
-#' 
+#'
 #' @param obj The MpraObject to extract properties from
-#' 
+#'
 #' @return an initialized MpraObject
-#' 
+#'
 #' @section Accessors:
 #' MpraObject properties can be accessed using accessor functions
 #' \describe{
@@ -150,31 +152,31 @@ setClass("MpraObject", validity = validateMpraObject,
 #' \item{dnaAnnot}{data.frame with the DNA column (sample) annotations}
 #' \item{ranAnnot}{data.frame with the RNA column (sample) annotations}
 #' \item{rowAnnot}{data.frame with the row (candidate enhancers) annotations}
-#' \item{model}{the distributional model used. the Gamma-Poisson convolutional 
+#' \item{model}{the distributional model used. the Gamma-Poisson convolutional
 #' model is used by default. see \code{\link{setModel}}}
 #' \item{dnaDepth}{The library size correction factors computed for the DNA
-#' libraries. These are computed by the \code{\link{estimateDepthFactors}} 
+#' libraries. These are computed by the \code{\link{estimateDepthFactors}}
 #' function and can be set manually using the \code{\link{setDepthFactors}}
 #' function}
 #' \item{rnaDepth}{The library size correction factors computed for the RNA
-#' libraries These are computed by the \code{\link{estimateDepthFactors}} 
+#' libraries These are computed by the \code{\link{estimateDepthFactors}}
 #' function and can be set manually using the \code{\link{setDepthFactors}}
 #' function}
 #' }
-#' 
+#'
 #' @examples
-#' data <- simulateMPRA(tr = rep(2,10), da=c(rep(2,5), rep(2.5,5)), 
+#' data <- simulateMPRA(tr = rep(2,10), da=c(rep(2,5), rep(2.5,5)),
 #'                      nbatch=2, nbc=20)
 #' ## use 3 of the non-active enhancers as controls
-#' obj <- MpraObject(dnaCounts = data$obs.dna, 
-#'                   rnaCounts = data$obs.rna, 
+#' obj <- MpraObject(dnaCounts = data$obs.dna,
+#'                   rnaCounts = data$obs.rna,
 #'                   colAnnot = data$annot,
 #'                   controls = as.integer(c(1,2,4)))
 #' ## alternatively, initialize the object with SummarizedExperiment objects:
 #' \dontrun{
 #' se.DNA <- SummarizedExperiment(list(data$obs.dna), colData=data$annot)
 #' se.RNA <- SummarizedExperiment(list(data$obs.rna), colData=data$annot)
-#' obj <- MpraObject(dnaCounts = se.DNA, rnaCounts = rna.se, 
+#' obj <- MpraObject(dnaCounts = se.DNA, rnaCounts = rna.se,
 #'                   controls = as.integer(c(1,2,4)))
 #' }
 #' dnaCounts <- dnaCounts(obj)
@@ -182,29 +184,29 @@ setClass("MpraObject", validity = validateMpraObject,
 #' dnaAnnot <- dnaAnnot(obj)
 #' rnaAnnot <- rnaAnnot(obj)
 #' controls <- controls(obj)
-#' rowAnnot <- rowAnnot(obj) 
+#' rowAnnot <- rowAnnot(obj)
 #' model <- model(obj)
-#' 
+#'
 #' obj <- estimateDepthFactors(obj, lib.factor=c("batch", "condition"))
 #' dnaDepth <- dnaDepth(obj)
 #' rnaDepth <- rnaDepth(obj)
-#' 
+#'
 #' @rdname MpraObject
-setGeneric("MpraObject", 
-           function(dnaCounts, rnaCounts, dnaAnnot=NULL, rnaAnnot=NULL, 
-                    colAnnot=NULL, controls=NA_integer_, rowAnnot=NULL, 
+setGeneric("MpraObject",
+           function(dnaCounts, rnaCounts, dnaAnnot=NULL, rnaAnnot=NULL,
+                    colAnnot=NULL, controls=NA_integer_, rowAnnot=NULL,
                     BPPARAM=NULL) standardGeneric("MpraObject"))
 
 #' @rdname MpraObject
 #' @export
 setMethod("MpraObject", signature = signature(dnaCounts = "matrix"),
-          function(dnaCounts, rnaCounts, dnaAnnot=NULL, rnaAnnot=NULL, 
+          function(dnaCounts, rnaCounts, dnaAnnot=NULL, rnaAnnot=NULL,
                        colAnnot=NULL, controls=NA_integer_, rowAnnot=NULL,
                        BPPARAM=NULL) {
               if(is.null(BPPARAM)) {
                   BPPARAM <- SerialParam()
               }
-              
+
               if(is.numeric(controls)) {
                   c <- rep(FALSE, NROW(dnaCounts))
                   c[controls] <- TRUE
@@ -215,14 +217,14 @@ setMethod("MpraObject", signature = signature(dnaCounts = "matrix"),
               if((is.null(dnaAnnot) | is.null(rnaAnnot)) & !is.null(colAnnot)) {
                   rnaAnnot <- dnaAnnot <- colAnnot
               }
-              
+
               ## remove invalid enhancers: all dna or all rna counts are 0.
-              invalid <- union(which(apply(dnaCounts, 1, 
+              invalid <- union(which(apply(dnaCounts, 1,
                                            function(x) all(x==0))),
-                               which(apply(rnaCounts, 1, 
+                               which(apply(rnaCounts, 1,
                                            function(x) all(x==0))))
               if(length(invalid) > 0) {
-                  warning(length(invalid), 
+                  warning(length(invalid),
                           " enhancers were removed from the analysis")
                   if(length(controls) > 1) {
                       controls <- controls[-invalid]
@@ -230,20 +232,20 @@ setMethod("MpraObject", signature = signature(dnaCounts = "matrix"),
                   dnaCounts <- dnaCounts[-invalid,]
                   rnaCounts <- rnaCounts[-invalid,]
               }
-              
-              obj <- new("MpraObject", dnaCounts=dnaCounts, 
-                         rnaCounts=rnaCounts, dnaAnnot=dnaAnnot, 
-                         rnaAnnot=rnaAnnot, controls=controls, 
+
+              obj <- new("MpraObject", dnaCounts=dnaCounts,
+                         rnaCounts=rnaCounts, dnaAnnot=dnaAnnot,
+                         rnaAnnot=rnaAnnot, controls=controls,
                          rowAnnot=rowAnnot, BPPARAM=BPPARAM)
               return(obj)
-              
+
 })
 
 #' @rdname MpraObject
 #' @export
-setMethod("MpraObject", 
+setMethod("MpraObject",
           signature = signature(dnaCounts = "SummarizedExperiment"),
-          function(dnaCounts, rnaCounts, dnaAnnot=NULL, rnaAnnot=NULL, 
+          function(dnaCounts, rnaCounts, dnaAnnot=NULL, rnaAnnot=NULL,
                    colAnnot=NULL, controls=NA, rowAnnot=NULL,
                    BPPARAM=NULL) {
               return(MpraObject(dnaCounts = assay(dnaCounts),

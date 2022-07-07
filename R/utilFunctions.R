@@ -1,12 +1,12 @@
 #' get a design matrix from the input design
-#' 
+#'
 #' adds an extra first column if this is the rna design matrix and
 #' the rna noise model requires a separate variance parameter which is not
-#' used for the mean model, ie. if the first parameter to estimate is not 
+#' used for the mean model, ie. if the first parameter to estimate is not
 #' part of the GLM that defines the mean parameter.
 #'
 #' @import methods
-#' 
+#'
 #' @param design the formula object describing the design
 #' @param annotations the column annotations corresponding to the design
 #' @param condition condition to substract from formula
@@ -24,13 +24,28 @@ getDesignMat <- function(design, annotations, condition=NULL) {
     return(dmat)
 }
 
+#' get a design matrix for the random effects
+#'
+#' @import methods
+#'
+#' @param randomEffect the annotation column containing the grouping variable
+#' @param annotations the column annotations corresponding to the design
+#'
+#' @return a design matrix
+#' @noRd
+getRandomEffectMat <- function(randomEffect, annotations) {
+    design <- as.formula(paste("~ 0 +", randomEffect))
+    dmat <- model.matrix(design, annotations)
+    return(dmat)
+}
+
 #' Return TRUE iff the reduced design is nested within the full design
 #' @param full the full design (formula)
 #' @param reduced the reduced design (formula)
 #' @return TRUE iff the reduced design is nested in the full design
 #' @noRd
 isNestedDesign <- function(full, reduced) {
-    return(all(attr(terms(reduced), "term.labels") %in% 
+    return(all(attr(terms(reduced), "term.labels") %in%
                    attr(terms(full), "term.labels")))
 }
 
@@ -47,56 +62,59 @@ checkForIntercept <- function(design) {
 }
 
 #' Reformat a list of models (return values of a fit.* function) to a list
-#' of model parameters containing the corresponding parameters, for easier 
+#' of model parameters containing the corresponding parameters, for easier
 #' access and control
-#' @param models the models to reformet, should be a list of results from a 
+#' @param models the models to reformet, should be a list of results from a
 #' fit.* function
-#' @return a list of formatted extacted properties 
+#' @return a list of formatted extacted properties
 #' @noRd
 reformatModels <- function(models) {
     valid <- !vapply(models, is.null, TRUE)
     res <- list(
         ll = extractProp(models, "ll", valid),
         converged = extractProp(models, "converged", valid),
-        
+
         d.coef = extractProp(models, "d.coef", valid),
         d.df = extractProp(models, "d.df", valid),
         d.se = extractProp(models, "d.se", valid),
-        
+
         r.coef = extractProp(models, "r.coef", valid),
         r.df = extractProp(models, "r.df", valid),
         r.se = extractProp(models, "r.se", valid),
-        
+
         r.ctrl.coef = extractProp(models, "r.ctrl.coef", valid),
         r.ctrl.df = extractProp(models, "r.ctrl.df", valid),
-        r.ctrl.se = extractProp(models, "r.ctrl.se", valid)
+        r.ctrl.se = extractProp(models, "r.ctrl.se", valid),
+
+        rand.coef = extractProp(models, "rand.coef", valid),
+        rand.df = extractProp(models, "rand.df", valid)
     )
-    
+
     return(res)
 }
 
 #' Reformat a list of models (return values of a fit.* function) to a list
-#' of model parameters containing the corresponding parameters, for easier 
+#' of model parameters containing the corresponding parameters, for easier
 #' access and control. This function is for the scale mode.
-#' @param models the models to reformet, should be a list of results from a 
+#' @param models the models to reformet, should be a list of results from a
 #' fit.* function
-#' @return a list of formatted extacted properties 
+#' @return a list of formatted extacted properties
 #' @noRd
 reformatModels.scale <- function(models) {
     valid <- !vapply(models, is.null, TRUE)
     res <- list(
         ll = extractProp(models, "ll", valid),
         converged = extractProp(models, "converged", valid),
-        
+
         r.coef = extractProp(models, "r.coef", valid),
         r.df = extractProp(models, "r.df", valid),
         r.se = extractProp(models, "r.se", valid),
-        
+
         r.ctrl.coef = extractProp(models, "r.ctrl.coef", valid),
         r.ctrl.df = extractProp(models, "r.ctrl.df", valid),
         r.ctrl.se = extractProp(models, "r.ctrl.se", valid)
     )
-    
+
     return(res)
 }
 
@@ -133,13 +151,13 @@ extractProp <- function(models, prop, valids) {
 #' @param value the value of the term to get the alpha of (See details)
 #' @param full if true, return alpha of the full model (default), otherwise of
 #' the reduced model (only applies if an LRT-based analysis was used)
-#' 
-#' @return a named vector 
-#' 
+#'
+#' @return a named vector
+#'
 #' @details return the estimate for transcription rate as fitted by the package.
-#' If the design is intercepted, then by default the baseline (intercept) rate 
+#' If the design is intercepted, then by default the baseline (intercept) rate
 #' is returned. Otherwise, term and value must be provided, such that term is a
-#' valid term in the design provided to the fit, and value is one of the 
+#' valid term in the design provided to the fit, and value is one of the
 #' levels in the term.
 #' @noRd
 getSingleAlpha <- function(obj, term=NULL, value=NULL, full=TRUE) {
@@ -157,7 +175,7 @@ getSingleAlpha <- function(obj, term=NULL, value=NULL, full=TRUE) {
         coef <- exp(coefs[,2])
         names(coef) <- rownames(coefs)
         return(coef)
-    } 
+    }
     if(is.null(term) | is.null(value)) {
         stop("both term and value must be provided")
     }
@@ -166,18 +184,18 @@ getSingleAlpha <- function(obj, term=NULL, value=NULL, full=TRUE) {
         stop("no matching coefficient for given arguments")
     }
     coef.id <- 1 + which(coef.id)
-    
+
     if(checkForIntercept(des)) {
         coef <- exp(coefs[,2] + coefs[,coef.id])
     } else {
         coef <- exp(coefs[,coef.id])
     }
-    
+
     ##add the intercept from the control model
     if(!is.null(obj@designs@rnaCtrlFull)) {
         coef <- coef * exp(obj@modelPreFits.dna.ctrl$r.coef[1,2])
     }
-    
+
     names(coef) <- rownames(coefs)
     return(coef)
 }
