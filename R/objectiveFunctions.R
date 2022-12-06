@@ -65,7 +65,7 @@ cost.dnarna <- function(theta, dcounts, rcounts,
                         llfnDNA, llfnRNA,
                         log.ddepth, log.rdepth, rctrlscale=NULL,
                         ddesign.mat, rdesign.mat, d2rdesign.mat,
-                        randeff.mat=NULL,
+                        randeff.mat=NULL, randvar=NULL,
                         rdesign.ctrl.mat=NULL) {
     ## extract parameter vectors by model part
     # first parameter of DNA model is the variance(-link) parameter
@@ -74,7 +74,7 @@ cost.dnarna <- function(theta, dcounts, rcounts,
                             1+NCOL(ddesign.mat)+NCOL(rdesign.mat), by=1))]
     if (!is.null(randeff.mat)) {
         theta.rand = theta[seq(1 + NCOL(ddesign.mat) + NCOL(rdesign.mat) + 1,
-                             1 + NCOL(ddesign.mat) + NCOL(rdesign.mat) + NCOL(randeff.mat) + 1, by = 1)]
+                             1 + NCOL(ddesign.mat) + NCOL(rdesign.mat) + NCOL(randeff.mat), by = 1)]
     } else {
         theta.rand = NULL
     }
@@ -93,7 +93,7 @@ cost.dnarna <- function(theta, dcounts, rcounts,
                     log.rdepth = log.rdepth,
                     d2rdesign.mat = d2rdesign.mat,
                     rdesign.mat = cbind(rdesign.mat, rdesign.ctrl.mat),
-                    randeff.mat = randeff.mat)
+                    randeff.mat = randeff.mat, randvar = randvar)
 
     return(d.ll + r.ll)
 }

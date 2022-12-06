@@ -14,17 +14,17 @@ getModelParameters_RNA(obj, features = NULL, full = TRUE)
 \arguments{
 \item{obj}{the MpraObject to extract the parameters from}
 
-\item{features}{the features to extract the parameters from (by default, 
+\item{features}{the features to extract the parameters from (by default,
 parameters will be returned for all features)}
 
-\item{full}{if TRUE (default), return the parameters of the full model. 
-Otherwise, return the parameters of the reduced model (only relevant for 
+\item{full}{if TRUE (default), return the parameters of the full model.
+Otherwise, return the parameters of the reduced model (only relevant for
 LRT-based analyses)}
 }
 \value{
 a data.frame of features (rows) by parameters (cols). By convension,
-the first parameter is related to the second moment, and the interpretation 
-of  it depends on the distributional model used (`alpha` for `gamma.pois`, 
+the first parameter is related to the second moment, and the interpretation
+of  it depends on the distributional model used (`alpha` for `gamma.pois`,
 variance  for `ln.nb` and `ln.ln`)
 }
 \description{
@@ -32,11 +32,11 @@ extract the DNA model parameters
 }
 \examples{
 data <- simulateMPRA(tr = rep(2,5), nbatch=2, nbc=15)
-obj <- MpraObject(dnaCounts = data$obs.dna, 
-                  rnaCounts = data$obs.rna, 
+obj <- MpraObject(dnaCounts = data$obs.dna,
+                  rnaCounts = data$obs.rna,
                   colAnnot = data$annot)
 obj <- estimateDepthFactors(obj, lib.factor = "batch", which.lib = "both")
-obj <- analyzeQuantification(obj, dnaDesign = ~ batch + barcode, 
+obj <- analyzeQuantification(obj, dnaDesign = ~ batch + barcode,
                               rnaDesign = ~1)
 model.params.dna <- getModelParameters_DNA(obj)
 model.params.rna <- getModelParameters_RNA(obj)

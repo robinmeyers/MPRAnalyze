@@ -77,7 +77,7 @@ NULL
 fit.dnarna.noctrlobs <- function(model, dcounts, rcounts,
                                  ddepth, rdepth, rctrlscale, dguess,
                                  ddesign.mat, rdesign.mat, d2rdesign.mat,
-                                 randeff.mat,
+                                 randeff.mat, randvar,
                                  rdesign.ctrl.mat, theta.d.ctrl.prefit,
                                  compute.hessian) {
     ## get likelihood function
@@ -114,7 +114,12 @@ fit.dnarna.noctrlobs <- function(model, dcounts, rcounts,
     d2rmat.valid <- d2rdesign.mat[valid.c.r,valid.df,drop=FALSE]
     rdmat.ctrl.valid <- rdesign.ctrl.mat[valid.c.r,,drop=FALSE]
 
+
+
     if (!is.null(randeff.mat)) {
+        if (!is.numeric(randvar)) {
+            stop("must supply random effect variance estimate")
+        }
         valid.randeff <- apply(randeff.mat[valid.c.r, , drop = FALSE],
                            2, function(x) sum(x!=0) > 1)
         randmat.valid <- randeff.mat[valid.c.r, valid.randeff, drop = FALSE]
@@ -125,7 +130,7 @@ fit.dnarna.noctrlobs <- function(model, dcounts, rcounts,
     ## Initialize parameter vector with a guess
     guess <- rep(0, 1 + NCOL(ddmat.valid) + NCOL(rdmat.valid))
     if (!is.null(randmat.valid)) {
-        guess <- c(guess, rep(0, 1 + NCOL(randmat.valid)))
+        guess <- c(guess, rep(0, NCOL(randmat.valid)))
     }
     if(length(dcounts.valid) > 1) {
         guess[1] <- log(sd(dcounts.valid))
@@ -156,6 +161,7 @@ fit.dnarna.noctrlobs <- function(model, dcounts, rcounts,
             d2rdesign.mat = d2rmat.valid,
             rdesign.ctrl.mat = rdmat.ctrl.valid,
             randeff.mat = randmat.valid,
+            randvar = randvar,
             hessian = compute.hessian,
             method = "L-BFGS-B", control = list(maxit=1000),
             lower=-23, upper=23)
@@ -178,9 +184,9 @@ fit.dnarna.noctrlobs <- function(model, dcounts, rcounts,
 
     if (!is.null(randmat.valid)) {
         rand.par <- fit$par[seq(1+NCOL(ddmat.valid)+NCOL(rdmat.valid)+1,
-                              1+NCOL(ddmat.valid)+NCOL(rdmat.valid)+NCOL(randmat.valid)+1)]
-        rand.coef <- c(rand.par[1], rep(NA, NCOL(randeff.mat)))
-        rand.coef[1 + which(valid.randeff)] <- rand.par[-1]
+                              1+NCOL(ddmat.valid)+NCOL(rdmat.valid)+NCOL(randmat.valid))]
+        rand.coef <- rep(NA, NCOL(randeff.mat))
+        rand.coef[which(valid.randeff)] <- rand.par
         rand.df <- length(rand.par)
 
     } else {

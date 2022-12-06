@@ -19,7 +19,11 @@ Imports:
     progress,
     stats,
     SummarizedExperiment,
-    invgamma
+    dplyr,
+    magrittr,
+    tidyr,
+    tidyselect,
+    DESeq2
 biocViews: ImmunoOncology, 
 	Software,
     StatisticalMethod,
@@ -32,8 +36,9 @@ biocViews: ImmunoOncology,
     Classification
 Suggests:
     knitr
+LinkingTo: Rcpp
 ByteCompile: true
 BugReports: https://github.com/YosefLab/MPRAnalyze
 URL: https://github.com/YosefLab/MPRAnalyze
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.1
 VignetteBuilder: knitr

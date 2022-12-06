@@ -26,9 +26,9 @@ and MT corresponds to episomal}
 
 An object of class \code{data.frame} with 40 rows and 3 columns.
 
-An object of class \code{matrix} with 110 rows and 40 columns.
+An object of class \code{matrix} (inherits from \code{array}) with 110 rows and 40 columns.
 
-An object of class \code{matrix} with 110 rows and 40 columns.
+An object of class \code{matrix} (inherits from \code{array}) with 110 rows and 40 columns.
 
 An object of class \code{logical} of length 110.
 }

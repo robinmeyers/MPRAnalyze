@@ -11,6 +11,7 @@ analyzeComparative(
   fit.se = FALSE,
   reducedDesign = NULL,
   correctControls = TRUE,
+  randomEffect = NULL,
   verbose = TRUE,
   mode = "classic",
   BPPARAM = NULL
@@ -29,19 +30,21 @@ are extracted from the model. These are necessary for computing coefficient-
 based testing, but make the model fitting slower. Deafult: FALSE}
 
 \item{reducedDesign}{the design for the reduced RNA model, for a likelihood-
-ratio testing scheme. The Reduced design must be nested within the full 
+ratio testing scheme. The Reduced design must be nested within the full
 design (i.e all terms in the reduced must be included in the full).}
 
-\item{correctControls}{if TRUE (default), use the negative controls to 
+\item{correctControls}{if TRUE (default), use the negative controls to
 establish the null hypothesis, correcting for systemic bias in the data}
+
+\item{randomEffect}{character indicating grouping variable for random effect. only implemented as a random effect on the intercept.}
 
 \item{verbose}{print progress reports (default: TRUE)}
 
-\item{mode}{whether to run in classic mode ("classic") or in scalable mode ("scale"). 
+\item{mode}{whether to run in classic mode ("classic") or in scalable mode ("scale").
 Scale mode is only available in situations when each RNA observation has a single
 corresponding DNA observation.}
 
-\item{BPPARAM}{a parallelization object created by BiocParallel. This 
+\item{BPPARAM}{a parallelization object created by BiocParallel. This
 overwrites the BPPARAM object set in the object creation.}
 }
 \value{
@@ -51,17 +54,21 @@ the MpraObject with fitted models for the input enhancers
 Run a comparative analysis between conditions
 }
 \examples{
-data <- simulateMPRA(tr = rep(2,5), da=c(rep(0,2), rep(1,3)), 
+data <- simulateMPRA(tr = rep(2,5), da=c(rep(0,2), rep(1,3)),
                      nbatch=2, nbc=15)
-obj <- MpraObject(dnaCounts = data$obs.dna, 
-                  rnaCounts = data$obs.rna, 
+obj <- MpraObject(dnaCounts = data$obs.dna,
+                  rnaCounts = data$obs.rna,
                   colAnnot = data$annot)
 obj <- estimateDepthFactors(obj, lib.factor = "batch", which.lib = "both")
 ## run an LRT-based analysis, as recommnded:
-obj <- analyzeComparative(obj, dnaDesign = ~ batch + barcode + condition, 
+obj <- analyzeComparative(obj, dnaDesign = ~ batch + barcode + condition,
                               rnaDesign = ~ condition, reducedDesign = ~ 1)
-                              
+
 ## alternatively, run a coefficient-based analysis:
-obj <- analyzeComparative(obj, dnaDesign = ~ batch + barcode + condition, 
+obj <- analyzeComparative(obj, dnaDesign = ~ batch + barcode + condition,
                               rnaDesign = ~ condition, fit.se = TRUE)
+## include a random effect of barcode in the RNA design
+obj <- analyzeComparative(obj, dnaDesign = ~ barcode,
+                              rnaDesign = ~ condition, reducedDesign = ~ 1,
+                              randomEffect = "barcode")
 }

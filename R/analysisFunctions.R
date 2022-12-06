@@ -69,6 +69,13 @@ analyzeComparative <- function(obj, rnaDesign, dnaDesign=NULL, fit.se=FALSE,
             stop("reduced design must be nested within the full RNA design")
         }
     }
+    if (!is.null(randomEffect)) {
+        if (is.null(obj@randEffVar)) {
+            stop("must first call estimateRandomEffectVariance() if using random effects")
+        } else {
+            randEffVar <- obj@randEffVar
+        }
+    }
     if(length(dnaDepth(obj)) != NCOL(dnaCounts(obj))) {
         obj <- estimateDepthFactors(obj, which.lib = "dna")
     }
@@ -135,6 +142,7 @@ analyzeComparative <- function(obj, rnaDesign, dnaDesign=NULL, fit.se=FALSE,
                 rcounts=rnaCounts(obj)[rn,,drop=FALSE],
                 ddepth=dnaDepth(obj),
                 rdepth=rnaDepth(obj),
+                randvar = obj@randEffVar,
                 rctrlscale=obj@rnaCtrlScale,
                 dguess=NULL,
                 ddesign.mat=obj@designs@dna,
@@ -165,6 +173,7 @@ analyzeComparative <- function(obj, rnaDesign, dnaDesign=NULL, fit.se=FALSE,
                     rcounts=rnaCounts(obj)[rn,,drop=FALSE],
                     ddepth=dnaDepth(obj),
                     rdepth=rnaDepth(obj),
+                    randvar = obj@randEffVar,
                     rctrlscale=obj@rnaCtrlScale,
                     dguess=obj@modelFits$d.coef[rn,],
                     ddesign.mat=obj@designs@dna,

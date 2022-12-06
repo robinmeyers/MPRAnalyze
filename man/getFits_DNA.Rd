@@ -2,8 +2,8 @@
 % Please edit documentation in R/accessFunctions.R
 \name{getFits_DNA}
 \alias{getFits_DNA}
-\title{Get DNA model-based estimates from an MpraObject (the expected values based 
-on the model). These can be compared with the observed counts to assess 
+\title{Get DNA model-based estimates from an MpraObject (the expected values based
+on the model). These can be compared with the observed counts to assess
 goodness of fit.}
 \usage{
 getFits_DNA(
@@ -17,8 +17,8 @@ getFits_DNA(
 \arguments{
 \item{obj}{MpraObject to extract from}
 
-\item{enhancers}{which enhancers to get the fits for. Can be character 
-vectors with enhancer names, logical or numeric enhancer indices, or NULL if 
+\item{enhancers}{which enhancers to get the fits for. Can be character
+vectors with enhancer names, logical or numeric enhancer indices, or NULL if
 all enhancers are to be extracted (default)}
 
 \item{depth}{include depth correction in the model fitting (default TRUE)}
@@ -26,7 +26,7 @@ all enhancers are to be extracted (default)}
 \item{full}{if LRT modeling was used, TRUE (default) would return the fits
 of the full model, FALSEwould return the reduced model fits.}
 
-\item{transition}{use the DNA->RNA transition matrix (deafult: FALSE). This 
+\item{transition}{use the DNA->RNA transition matrix (deafult: FALSE). This
 is useful if the DNA observations need to be distributed to match the RNA
 observations.}
 }
@@ -34,17 +34,17 @@ observations.}
 DNA fits (numeric, enhancers x samples)
 }
 \description{
-Get DNA model-based estimates from an MpraObject (the expected values based 
-on the model). These can be compared with the observed counts to assess 
+Get DNA model-based estimates from an MpraObject (the expected values based
+on the model). These can be compared with the observed counts to assess
 goodness of fit.
 }
 \examples{
 data <- simulateMPRA(tr = rep(2,5), nbatch=2, nbc=15)
-obj <- MpraObject(dnaCounts = data$obs.dna, 
-                  rnaCounts = data$obs.rna, 
+obj <- MpraObject(dnaCounts = data$obs.dna,
+                  rnaCounts = data$obs.rna,
                   colAnnot = data$annot)
 obj <- estimateDepthFactors(obj, lib.factor = "batch", which.lib = "both")
-obj <- analyzeQuantification(obj, dnaDesign = ~ batch + barcode, 
+obj <- analyzeQuantification(obj, dnaDesign = ~ batch + barcode,
                               rnaDesign = ~1)
 dna.fits <- getFits_DNA(obj)
 }

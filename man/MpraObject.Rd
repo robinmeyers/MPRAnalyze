@@ -111,9 +111,9 @@ will be ignored}
 \item{colAnnot}{if annotations for DNA and RNA are identical, they can be set
 at the same time using colAnnot instead of using both rnaAnnot and dnaAnnot}
 
-\item{controls}{IDs of the rows in the matrices that correspond to negative 
+\item{controls}{IDs of the rows in the matrices that correspond to negative
 control enhancers. These are used to establish the null for quantification
-purposes, and to correct systemic bias in comparative analyses. Can be a 
+purposes, and to correct systemic bias in comparative analyses. Can be a
 character vectors (corresponding to rownames in the data matrices), logical
 or numeric indices.}
 
@@ -141,32 +141,32 @@ MpraObject properties can be accessed using accessor functions
 \item{dnaAnnot}{data.frame with the DNA column (sample) annotations}
 \item{ranAnnot}{data.frame with the RNA column (sample) annotations}
 \item{rowAnnot}{data.frame with the row (candidate enhancers) annotations}
-\item{model}{the distributional model used. the Gamma-Poisson convolutional 
+\item{model}{the distributional model used. the Gamma-Poisson convolutional
 model is used by default. see \code{\link{setModel}}}
 \item{dnaDepth}{The library size correction factors computed for the DNA
-libraries. These are computed by the \code{\link{estimateDepthFactors}} 
+libraries. These are computed by the \code{\link{estimateDepthFactors}}
 function and can be set manually using the \code{\link{setDepthFactors}}
 function}
 \item{rnaDepth}{The library size correction factors computed for the RNA
-libraries These are computed by the \code{\link{estimateDepthFactors}} 
+libraries These are computed by the \code{\link{estimateDepthFactors}}
 function and can be set manually using the \code{\link{setDepthFactors}}
 function}
 }
 }
 
 \examples{
-data <- simulateMPRA(tr = rep(2,10), da=c(rep(2,5), rep(2.5,5)), 
+data <- simulateMPRA(tr = rep(2,10), da=c(rep(2,5), rep(2.5,5)),
                      nbatch=2, nbc=20)
 ## use 3 of the non-active enhancers as controls
-obj <- MpraObject(dnaCounts = data$obs.dna, 
-                  rnaCounts = data$obs.rna, 
+obj <- MpraObject(dnaCounts = data$obs.dna,
+                  rnaCounts = data$obs.rna,
                   colAnnot = data$annot,
                   controls = as.integer(c(1,2,4)))
 ## alternatively, initialize the object with SummarizedExperiment objects:
 \dontrun{
 se.DNA <- SummarizedExperiment(list(data$obs.dna), colData=data$annot)
 se.RNA <- SummarizedExperiment(list(data$obs.rna), colData=data$annot)
-obj <- MpraObject(dnaCounts = se.DNA, rnaCounts = rna.se, 
+obj <- MpraObject(dnaCounts = se.DNA, rnaCounts = rna.se,
                   controls = as.integer(c(1,2,4)))
 }
 dnaCounts <- dnaCounts(obj)
@@ -174,7 +174,7 @@ rnaCounts <- rnaCounts(obj)
 dnaAnnot <- dnaAnnot(obj)
 rnaAnnot <- rnaAnnot(obj)
 controls <- controls(obj)
-rowAnnot <- rowAnnot(obj) 
+rowAnnot <- rowAnnot(obj)
 model <- model(obj)
 
 obj <- estimateDepthFactors(obj, lib.factor=c("batch", "condition"))

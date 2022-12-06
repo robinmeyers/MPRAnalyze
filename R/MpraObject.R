@@ -98,6 +98,7 @@ setClass("MpraObject", validity = validateMpraObject,
              dnaDepth = "numeric",
              rnaDepth = "numeric",
              rnaCtrlScale = "numericORNULL",
+             randEffVar = "numericORNULL",
 
              mode = "character",
              model = "character",

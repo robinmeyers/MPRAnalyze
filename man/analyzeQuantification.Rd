@@ -2,8 +2,8 @@
 % Please edit documentation in R/analysisFunctions.R
 \name{analyzeQuantification}
 \alias{analyzeQuantification}
-\title{Perform quantitative analysis on the MPRA data. This analysis aims to 
-determine which sequences have a regulatory function, when no condition is 
+\title{Perform quantitative analysis on the MPRA data. This analysis aims to
+determine which sequences have a regulatory function, when no condition is
 being tested.}
 \usage{
 analyzeQuantification(obj, dnaDesign = ~1, rnaDesign = ~1, BPPARAM = NULL)
@@ -15,7 +15,7 @@ analyzeQuantification(obj, dnaDesign = ~1, rnaDesign = ~1, BPPARAM = NULL)
 
 \item{rnaDesign}{the design of the RNA counts}
 
-\item{BPPARAM}{a parallelization object created by BiocParallel. This 
+\item{BPPARAM}{a parallelization object created by BiocParallel. This
 overwrites the BPPARAM object set in the object creation.}
 }
 \value{
@@ -34,10 +34,10 @@ the MpraObject, with populated models
 }
 \examples{
 data <- simulateMPRA(tr = rep(2,10), nbatch=2, nbc=15)
-obj <- MpraObject(dnaCounts = data$obs.dna, 
-                  rnaCounts = data$obs.rna, 
+obj <- MpraObject(dnaCounts = data$obs.dna,
+                  rnaCounts = data$obs.rna,
                   colAnnot = data$annot)
 obj <- estimateDepthFactors(obj, lib.factor = "batch", which.lib = "both")
-obj <- analyzeQuantification(obj, dnaDesign = ~ batch + barcode, 
+obj <- analyzeQuantification(obj, dnaDesign = ~ batch + barcode,
                               rnaDesign = ~1)
 }

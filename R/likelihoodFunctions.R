@@ -135,13 +135,13 @@ ll.rna.gamma.pois <- function(theta, theta.d, theta.rand = NULL,
 #' @noRd
 ll.rna.gamma.pois.randeff <- function(theta, theta.d, theta.rand,
                               rcounts, log.rdepth,
-                              d2rdesign.mat, rdesign.mat, randeff.mat,
-                              invgamma_params = c(0.1, 0.1)) {
+                              d2rdesign.mat, rdesign.mat,
+                              randeff.mat, randvar) {
 
     alpha.mat <- matrix(rep(theta.d[1,], each=NROW(d2rdesign.mat)),
                         nrow=NROW(d2rdesign.mat))
     log.d.est <- (d2rdesign.mat %*% theta.d[-1,,drop=FALSE]) + alpha.mat
-    log.r.est <- log.d.est + rep((rdesign.mat %*% theta[-1]) + (randeff.mat %*% theta.rand[-1]) + log.rdepth,
+    log.r.est <- log.d.est + rep((rdesign.mat %*% theta[-1]) + (randeff.mat %*% theta.rand) + log.rdepth,
                                  NCOL(log.d.est))
 
     ## compute likelihood
@@ -153,11 +153,10 @@ ll.rna.gamma.pois.randeff <- function(theta, theta.d, theta.rand,
                       mu = exp(log.r.est),
                       log = TRUE))
 
-    ll_re <- sum(dnorm(x = theta.rand[-1],
+    ll_re <- sum(dnorm(x = theta.rand,
                        mean = 0,
-                       sd = exp(theta.rand[1]),
-                       log = T)) +
-        invgamma::dinvgamma(exp(theta.rand[1])^2, invgamma_params[1], invgamma_params[2], log = T)
+                       sd = sqrt(randvar),
+                       log = T))
 
     return(- (ll + ll_re))
 }

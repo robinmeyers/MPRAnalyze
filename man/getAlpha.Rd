@@ -10,14 +10,14 @@ getAlpha(obj, by.factor = NULL, full = TRUE)
 \item{obj}{the MpraObject to extract from, must be after model fitting}
 
 \item{by.factor}{return a matrix of values, corresponding to the estimated
-rates of transcription under different values of a factor included in the 
+rates of transcription under different values of a factor included in the
 design. Value must be of these options:
-NULL: (default) return only the intercept term, a single baseline rate for 
+NULL: (default) return only the intercept term, a single baseline rate for
 each enhancer
-"all": will return the corresponding transcription rates for all values 
+"all": will return the corresponding transcription rates for all values
 included in the model
-factor name: must be a factor included in the RNA annotations and the rna 
-design. Will return the corresponding rates for all values of the given 
+factor name: must be a factor included in the RNA annotations and the rna
+design. Will return the corresponding rates for all values of the given
 factor}
 
 \item{full}{if true, return rate of the full model (default), otherwise of
@@ -30,13 +30,13 @@ the estimate for transcription rate as fitted by the model
 return the fitted value for the transcription rate.
 }
 \examples{
-data <- simulateMPRA(tr = rep(2,10), da=c(rep(0,5), rep(1,5)), 
+data <- simulateMPRA(tr = rep(2,10), da=c(rep(0,5), rep(1,5)),
                      nbatch=2, nbc=15)
-obj <- MpraObject(dnaCounts = data$obs.dna, 
-                  rnaCounts = data$obs.rna, 
+obj <- MpraObject(dnaCounts = data$obs.dna,
+                  rnaCounts = data$obs.rna,
                   colAnnot = data$annot)
 obj <- estimateDepthFactors(obj, lib.factor = "batch", which.lib = "both")
-obj <- analyzeComparative(obj, dnaDesign = ~ batch + barcode + condition, 
+obj <- analyzeComparative(obj, dnaDesign = ~ batch + barcode + condition,
                               rnaDesign = ~ condition, reducedDesign = ~ 1)
 ## get alpha estimate for the two conditions
 alpha <- getAlpha(obj, by.factor="condition")

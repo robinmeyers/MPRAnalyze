@@ -3,7 +3,7 @@
 \name{getDistrParam_DNA}
 \alias{getDistrParam_DNA}
 \alias{getDistrParam_RNA}
-\title{Get model distribution parameters from an MpraObject of a given candidate 
+\title{Get model distribution parameters from an MpraObject of a given candidate
 enhancer}
 \usage{
 getDistrParam_DNA(obj, enhancer, full = TRUE)
@@ -21,16 +21,16 @@ getDistrParam_RNA(obj, enhancer = NULL, full = TRUE)
 fit parameters (numeric, samples x parameters)
 }
 \description{
-Get model distribution parameters from an MpraObject of a given candidate 
+Get model distribution parameters from an MpraObject of a given candidate
 enhancer
 }
 \examples{
 data <- simulateMPRA(tr = rep(2,5), nbatch=2, nbc=15)
-obj <- MpraObject(dnaCounts = data$obs.dna, 
-                  rnaCounts = data$obs.rna, 
+obj <- MpraObject(dnaCounts = data$obs.dna,
+                  rnaCounts = data$obs.rna,
                   colAnnot = data$annot)
 obj <- estimateDepthFactors(obj, lib.factor = "batch", which.lib = "both")
-obj <- analyzeQuantification(obj, dnaDesign = ~ batch + barcode, 
+obj <- analyzeQuantification(obj, dnaDesign = ~ batch + barcode,
                               rnaDesign = ~1)
 ## get distributional parameters of the first enhancer:
 dist.params.dna <- getDistrParam_DNA(obj, 1)
