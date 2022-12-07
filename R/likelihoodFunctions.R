@@ -111,7 +111,7 @@ NULL
 #' @noRd
 ll.rna.gamma.pois <- function(theta, theta.d, theta.rand = NULL,
                             rcounts, log.rdepth,
-                            d2rdesign.mat, rdesign.mat, randeff.mat = NULL) {
+                            d2rdesign.mat, rdesign.mat, randeff.mat = NULL, randvar = NULL) {
 
     alpha.mat <- matrix(rep(theta.d[1,], each=NROW(d2rdesign.mat)),
                         nrow=NROW(d2rdesign.mat))
@@ -164,7 +164,7 @@ ll.rna.gamma.pois.randeff <- function(theta, theta.d, theta.rand,
 #' @rdname ll.rna
 #' @noRd
 ll.rna.scale.nb <- function(theta, dcounts, rcounts,
-                            log.ddepth, log.rdepth, rdesign.mat, randeff.mat = NULL) {
+                            log.ddepth, log.rdepth, rdesign.mat, randeff.mat = NULL, randvar = NULL) {
     log.d.est <- log(dcounts) - log.ddepth
     log.r.est <- log.d.est + rep(((rdesign.mat %*% theta[-1]) + log.rdepth),
                                  NCOL(dcounts))
@@ -180,7 +180,7 @@ ll.rna.scale.nb <- function(theta, dcounts, rcounts,
 #' @noRd
 ll.rna.ln.nb <- function(theta, theta.d, theta.rand = NULL,
                         rcounts, log.rdepth,
-                        d2rdesign.mat, rdesign.mat, randeff.mat = NULL) {
+                        d2rdesign.mat, rdesign.mat, randeff.mat = NULL, randvar = NULL) {
 
     log.d.est <- d2rdesign.mat %*% theta.d[-1,]
     log.r.est <- log.d.est + rep(((rdesign.mat %*% theta[-1]) + log.rdepth),
@@ -199,7 +199,7 @@ ll.rna.ln.nb <- function(theta, theta.d, theta.rand = NULL,
 #' @noRd
 ll.rna.ln.ln <- function(theta, theta.d, theta.rand = NULL,
                         rcounts, log.rdepth,
-                        d2rdesign.mat, rdesign.mat, randeff.mat = NULL) {
+                        d2rdesign.mat, rdesign.mat, randeff.mat = NULL, randvar = NULL) {
 
     log.d.est <- d2rdesign.mat %*% theta.d[-1,]
     log.r.est <- log.d.est + rep(((rdesign.mat %*% theta[-1]) + log.rdepth),
