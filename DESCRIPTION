@@ -23,7 +23,9 @@ Imports:
     magrittr,
     tidyr,
     tidyselect,
-    DESeq2
+    DESeq2,
+    fitdistrplus,
+    invgamma
 biocViews: ImmunoOncology, 
 	Software,
     StatisticalMethod,
