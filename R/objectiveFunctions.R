@@ -74,7 +74,8 @@ cost.dnarna <- function(theta, dcounts, rcounts,
                             1+NCOL(ddesign.mat)+NCOL(rdesign.mat), by=1))]
     if (!is.null(randeff.mat)) {
         theta.rand = theta[seq(1 + NCOL(ddesign.mat) + NCOL(rdesign.mat) + 1,
-                             1 + NCOL(ddesign.mat) + NCOL(rdesign.mat) + NCOL(randeff.mat), by = 1)]
+                             1 + NCOL(ddesign.mat) + NCOL(rdesign.mat) + NCOL(randeff.mat) + 1, by = 1)]
+
     } else {
         theta.rand = NULL
     }

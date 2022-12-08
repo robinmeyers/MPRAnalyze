@@ -130,7 +130,8 @@ fit.dnarna.noctrlobs <- function(model, dcounts, rcounts,
     ## Initialize parameter vector with a guess
     guess <- rep(0, 1 + NCOL(ddmat.valid) + NCOL(rdmat.valid))
     if (!is.null(randmat.valid)) {
-        guess <- c(guess, rep(0, NCOL(randmat.valid)))
+        median_randvar <- invgamma::qinvgamma(0.5, shape = randvar[1], scale = randvar[2])
+        guess <- c(guess, log(median_randvar), rep(0, NCOL(randmat.valid)))
     }
     if(length(dcounts.valid) > 1) {
         guess[1] <- log(sd(dcounts.valid))
@@ -184,9 +185,9 @@ fit.dnarna.noctrlobs <- function(model, dcounts, rcounts,
 
     if (!is.null(randmat.valid)) {
         rand.par <- fit$par[seq(1+NCOL(ddmat.valid)+NCOL(rdmat.valid)+1,
-                              1+NCOL(ddmat.valid)+NCOL(rdmat.valid)+NCOL(randmat.valid))]
-        rand.coef <- rep(NA, NCOL(randeff.mat))
-        rand.coef[which(valid.randeff)] <- rand.par
+                              1+NCOL(ddmat.valid)+NCOL(rdmat.valid)+NCOL(randmat.valid)+1)]
+        rand.coef <- c(rand.par[1], rep(NA, NCOL(randeff.mat)))
+        rand.coef[1+which(valid.randeff)] <- rand.par[-1]
         rand.df <- length(rand.par)
 
     } else {

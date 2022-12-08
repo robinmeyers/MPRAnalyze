@@ -141,7 +141,7 @@ ll.rna.gamma.pois.randeff <- function(theta, theta.d, theta.rand,
     alpha.mat <- matrix(rep(theta.d[1,], each=NROW(d2rdesign.mat)),
                         nrow=NROW(d2rdesign.mat))
     log.d.est <- (d2rdesign.mat %*% theta.d[-1,,drop=FALSE]) + alpha.mat
-    log.r.est <- log.d.est + rep((rdesign.mat %*% theta[-1]) + (randeff.mat %*% theta.rand) + log.rdepth,
+    log.r.est <- log.d.est + rep((rdesign.mat %*% theta[-1]) + (randeff.mat %*% theta.rand[-1]) + log.rdepth,
                                  NCOL(log.d.est))
 
     ## compute likelihood
@@ -158,7 +158,14 @@ ll.rna.gamma.pois.randeff <- function(theta, theta.d, theta.rand,
                        sd = sqrt(randvar),
                        log = T))
 
+    ll_re <- sum(dnorm(x = theta.rand[-1],
+                       mean = 0,
+                       sd = exp(theta.rand[1]),
+                       log = T)) +
+        invgamma::dinvgamma(exp(theta.rand[1]), shape = randvar[1], scale = randvar[2], log = T)
+
     return(- (ll + ll_re))
+
 }
 
 #' @rdname ll.rna

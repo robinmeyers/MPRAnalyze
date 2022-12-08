@@ -11,10 +11,13 @@
 #' @export
 #'
 #' @importFrom magrittr set_rownames `%>%`
-#' @importFrom dplyr as_tibble mutate select group_by summarise left_join across
+#' @importFrom dplyr as_tibble mutate select group_by group_map left_join
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr pivot_wider pivot_longer
 #' @importFrom DESeq2 vst
+#' @importFrom lme4 lmer VarCorr
+#' @importFrom fitdistrplus fitdist
+#' @import invgamma
 #'
 #' @examples
 #' data <- simulateMPRA(tr = rep(2,10), da=NULL, nbatch=2, nbc=20)
@@ -61,14 +64,26 @@ estimateRandomEffectVariance <- function(obj, rand.factor, lib.factor) {
         pivot_longer(!element, names_to = lib.factor, values_to = "activity") %>%
         left_join(rna_long, by = c(lib.factor, "element"))
 
-    random_effects_estimate <- activity_long %>%
-        group_by(row) %>%
-        mutate(mean_row_activity = mean(activity, na.rm = T)) %>%
-        group_by(across(all_of(c("row", rand.factor, "mean_row_activity")))) %>%
-        summarise(mean_rand_factor_activity = mean(activity, na.rm = T)) %>%
-        mutate(mu = mean_rand_factor_activity - mean_row_activity)
 
-    obj@randEffVar <- var(random_effects_estimate$mu)
+    lmers <- activity_long %>%
+        group_by(row) %>%
+        group_map(~ lmer(activity ~ (1 | element), data = .x))
+
+    randvars <- map_df(lmers, ~ as.data.frame(VarCorr(.)) %>% dplyr::filter(grp == "element"))
+
+    invgamma_fit <- fitdistrplus::fitdist(randvars$sdcor, "invgamma")
+    invgamma_params <- invgamma_fit$estimate
+
+    # random_effects_estimate <- activity_long %>%
+    #     group_by(row) %>%
+    #     mutate(mean_row_activity = mean(activity, na.rm = T)) %>%
+    #     group_by(across(all_of(c("row", rand.factor, "mean_row_activity")))) %>%
+    #     summarise(mean_rand_factor_activity = mean(activity, na.rm = T)) %>%
+    #     mutate(mu = mean_rand_factor_activity - mean_row_activity)
+    #
+    # obj@randEffVar <- var(random_effects_estimate$mu)
+
+    obj@randEffVar <- invgamma_params
 
     return(obj)
 
