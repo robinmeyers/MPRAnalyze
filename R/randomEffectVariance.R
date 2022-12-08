@@ -17,7 +17,7 @@
 #' @importFrom DESeq2 vst
 #' @importFrom lme4 lmer VarCorr
 #' @importFrom fitdistrplus fitdist
-#' @importFrom invgamma dinvgamma qinvgamma pinvgamma
+#' @import invgamma
 #'
 #' @examples
 #' data <- simulateMPRA(tr = rep(2,10), da=NULL, nbatch=2, nbc=20)
@@ -71,9 +71,9 @@ estimateRandomEffectVariance <- function(obj, rand.factor, lib.factor) {
 
     randvars <- map_df(lmers, ~ as.data.frame(VarCorr(.)) %>% dplyr::filter(grp == "element"))
 
+    require(invgamma)
 
-
-    invgamma_fit <- fitdistrplus::fitdist(randvars$sdcor, dinvgamma)
+    invgamma_fit <- fitdistrplus::fitdist(randvars$sdcor, "invgamma")
     invgamma_params <- invgamma_fit$estimate
 
     # random_effects_estimate <- activity_long %>%
