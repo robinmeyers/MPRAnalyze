@@ -15,7 +15,7 @@
 #' @importFrom tidyselect all_of
 #' @importFrom tidyr pivot_wider pivot_longer
 #' @importFrom DESeq2 vst
-#' @importFrom lme4 lmer VarCorr
+#' @importFrom lme4 lmer VarCorr isSingular
 #' @importFrom fitdistrplus fitdist
 #' @import invgamma
 #'
@@ -69,7 +69,8 @@ estimateRandomEffectVariance <- function(obj, rand.factor, lib.factor) {
         group_by(row) %>%
         group_map(~ lmer(activity ~ (1 | element), data = .x))
 
-    randvars <- map_df(lmers, ~ as.data.frame(VarCorr(.)) %>% dplyr::filter(grp == "element"))
+    randvars <- lmers[map_lgl(lmers, isSingular)] %>%
+        map_df(~ as.data.frame(VarCorr(.)) %>% dplyr::filter(grp == "element"))
 
     require(invgamma)
 
