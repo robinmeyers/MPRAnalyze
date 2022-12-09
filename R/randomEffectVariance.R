@@ -69,7 +69,7 @@ estimateRandomEffectVariance <- function(obj, rand.factor, lib.factor) {
         group_by(row) %>%
         group_map(~ lmer(activity ~ (1 | element), data = .x))
 
-    randvars <- lmers[map_lgl(lmers, isSingular)] %>%
+    randvars <- lmers[!map_lgl(lmers, isSingular)] %>%
         map_df(~ as.data.frame(VarCorr(.)) %>% dplyr::filter(grp == "element"))
 
     require(invgamma)
