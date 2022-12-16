@@ -55,6 +55,7 @@ estimateRandomEffectVariance <- function(obj, rand.factor, lib.factor) {
     rna_cols <- seq_along(colnames(rna_mat))
     dna_cols <- seq_along(colnames(dna_mat)) + ncol(rna_mat)
     full_mat <- cbind(rna_mat, dna_mat[rownames(rna_mat),])
+    full_mat <- full_mat[apply(full_mat, 1, function(x) !any(is.na(x))),]
 
     full_vst <- vst(full_mat, nsub = min(ceiling(0.5*nrow(full_mat)), 1000))
 
