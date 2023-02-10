@@ -121,7 +121,7 @@ fit.dnarna.noctrlobs <- function(model, dcounts, rcounts,
             stop("must supply random effect variance estimate")
         }
         valid.randeff <- apply(randeff.mat[valid.c.r, , drop = FALSE],
-                           2, function(x) sum(x!=0) > 1)
+                           2, function(x) !all(x==0))
         randmat.valid <- randeff.mat[valid.c.r, valid.randeff, drop = FALSE]
     } else {
         randmat.valid <- NULL

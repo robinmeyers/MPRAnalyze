@@ -59,7 +59,7 @@ estimateRandomEffectVariance <- function(obj, rand.factor, lib.factor) {
 
     full_vst <- vst(full_mat, nsub = min(ceiling(0.5*nrow(full_mat)), 1000))
 
-    activity_mat <- full_vst[,rna_cols] - apply(full_vst[,dna_cols], 1, mean)
+    activity_mat <- full_vst[,rna_cols] - apply(full_vst[,dna_cols, drop = FALSE], 1, mean)
 
     activity_long <- activity_mat %>% as_tibble(rownames = "element") %>%
         pivot_longer(!element, names_to = lib.factor, values_to = "activity") %>%
