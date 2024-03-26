@@ -26,7 +26,7 @@
 #'                   colAnnot = data$annot)
 #' obj <- estimateRandomEffectVariance(obj, lib.factor = "sample", rand.factor = "barcode")
 
-estimateRandomEffectVariance <- function(obj, rand.factor, lib.factor) {
+estimateRandomEffectVariance <- function(obj, rand.factor, lib.factor, use_vst = F) {
 
     dna_long <- obj@dnaCounts %>% as_tibble(rownames = "row") %>%
         pivot_longer(!row, names_to = "col", values_to = "count") %>%
@@ -57,9 +57,16 @@ estimateRandomEffectVariance <- function(obj, rand.factor, lib.factor) {
     full_mat <- cbind(rna_mat, dna_mat[rownames(rna_mat),])
     full_mat <- full_mat[apply(full_mat, 1, function(x) !any(is.na(x))),]
 
-    full_vst <- vst(full_mat, nsub = min(ceiling(0.5*nrow(full_mat)), 1000))
+    if (use_vst) {
+        full_vst <- vst(full_mat, nsub = min(ceiling(0.5*nrow(full_mat)), 1000))
 
-    activity_mat <- full_vst[,rna_cols] - apply(full_vst[,dna_cols, drop = FALSE], 1, mean)
+        activity_mat <- full_vst[,rna_cols] - apply(full_vst[,dna_cols, drop = FALSE], 1, mean)
+    } else {
+        scale_mat <- apply(full_mat, 2, \(x) log(x+1) - log(sum(x)))
+
+        activity_mat <- scale_mat[,rna_cols] - apply(scale_mat[,dna_cols, drop = FALSE], 1, mean)
+    }
+
 
     activity_long <- activity_mat %>% as_tibble(rownames = "element") %>%
         pivot_longer(!element, names_to = lib.factor, values_to = "activity") %>%

@@ -43,5 +43,5 @@ LinkingTo: Rcpp
 ByteCompile: true
 BugReports: https://github.com/YosefLab/MPRAnalyze
 URL: https://github.com/YosefLab/MPRAnalyze
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 VignetteBuilder: knitr

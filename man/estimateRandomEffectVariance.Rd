@@ -4,7 +4,7 @@
 \alias{estimateRandomEffectVariance}
 \title{estimate random effect variance}
 \usage{
-estimateRandomEffectVariance(obj, rand.factor, lib.factor)
+estimateRandomEffectVariance(obj, rand.factor, lib.factor, use_vst = F)
 }
 \arguments{
 \item{obj}{the MpraObject}
